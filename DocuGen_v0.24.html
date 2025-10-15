@@ -1,0 +1,2624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuGen - People & Document Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Simple transition for view switching */
+        .view-container {
+            transition: opacity 0.3s ease-in-out;
+			#clear-search-btn.hidden {
+				display: none;
+				}
+        }
+			.choices__list--dropdown {
+			max-height: 300px;
+			overflow-y: auto;
+		}
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">VM Yachting</h1>
+        <p class="text-gray-500 mt-1">Customer manager & document generator.</p>
+    </div>
+    <div>
+        <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors shadow text-sm font-semibold">
+            Logout
+        </button>
+    </div>
+		</header>
+
+			<div id="auth-view" class="fixed inset-0 bg-gray-200 flex items-center justify-center z-50">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
+        
+        <form id="login-form">
+            <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="login-email" class="text-sm font-medium text-gray-600">Email</label>
+                    <input type="email" id="login-email" class="w-full p-2 border rounded mt-1" required>
+                </div>
+                <div>
+                    <label for="login-password" class="text-sm font-medium text-gray-600">Password</label>
+                    <input type="password" id="login-password" class="w-full p-2 border rounded mt-1" required>
+                </div>
+            </div>
+            <div class="mt-6">
+                <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Sign In</button>
+            </div>
+            <p class="text-center text-sm text-gray-500 mt-4">
+                Don't have an account? 
+                <a href="#" id="show-signup-link" class="font-medium text-indigo-600 hover:underline">Sign Up</a>
+            </p>
+        </form>
+
+        <form id="signup-form" class="hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center">Create Account</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="signup-email" class="text-sm font-medium text-gray-600">Email</label>
+                    <input type="email" id="signup-email" class="w-full p-2 border rounded mt-1" required>
+                </div>
+                <div>
+                    <label for="signup-password" class="text-sm font-medium text-gray-600">Password</label>
+                    <input type="password" id="signup-password" class="w-full p-2 border rounded mt-1" required>
+                </div>
+            </div>
+            <div class="mt-6">
+                <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Sign Up</button>
+            </div>
+             <p class="text-center text-sm text-gray-500 mt-4">
+                Already have an account? 
+                <a href="#" id="show-login-link" class="font-medium text-indigo-600 hover:underline">Log In</a>
+            </p>
+        </form>
+
+    </div>
+</div>
+
+        <!-- Navigation -->
+        <nav class="sticky top-4 z-40 flex space-x-2 bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg mb-8">
+            <button id="nav-groups" class="nav-button flex items-center justify-center w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Charters</span>
+            </button>
+			<button id="nav-people" class="nav-button flex items-center justify-center w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>People</span>
+            </button>
+
+             <button id="nav-calendar" class="nav-button flex items-center justify-center w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y2="2"/><line x1="8" x2="8" y2="2"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                <span>Calendar</span>
+            </button>
+            <button id="nav-templates" class="nav-button flex items-center justify-center w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Templates</span>
+            </button>
+            <button id="nav-generator" class="nav-button flex items-center justify-center w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2"><path d="M15 4V2m0 18v-2m-7.5-12.5L4 4m16 16l-3.5-3.5M2 15h2m18 0h-2M4 9.5 7.5 6M20 9.5 16.5 6"></path><circle cx="12" cy="12" r="2"></circle></svg>
+                <span>Generator</span>
+            </button>
+        </nav>
+
+			<!-- Main Content Area -->
+			<main id="main-content">
+				<!-- Groups Manager View -->
+				<div id="view-groups" class="view-container hidden"></div>
+				<!-- People Manager View -->
+				<div id="view-people" class="view-container"></div>
+				<!-- Calendar View -->
+				<div id="view-calendar" class="view-container hidden"></div>
+				<!-- Template Manager View -->
+				<div id="view-templates" class="view-container hidden"></div>
+				<!-- Document Generator View -->
+				<div id="view-generator" class="view-container hidden"></div>
+			</main>
+		</div>
+
+			
+		<!-- Person Modal -->
+		<div id="person-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center overflow-y-auto z-50 hidden">
+				<div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+					<h2 id="person-modal-title" class="text-xl font-bold mb-6">Add Person</h2>
+					<form id="person-form">
+						<input type="hidden" id="person-id">
+						
+						<div class="space-y-6">
+		
+							<div>
+								<h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Primary Details</h3>
+								<div class="space-y-4">
+									<div>
+										<label for="person-name" class="text-sm font-medium text-gray-600">Full Name</label>
+										<input type="text" id="person-name" placeholder="Full Name" class="w-full p-2 border rounded mt-1" required>
+									</div>
+									<div>
+										<label for="person-groups-select" class="text-sm font-medium text-gray-600">Associated Charters</label>
+										<select id="person-groups-select" multiple></select>
+									</div>
+									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div class="flex items-center pt-4">
+											<input type="checkbox" id="person-is-charterer" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+											<label for="person-is-charterer" class="ml-2 block text-sm font-medium text-gray-700">Charterer (Creates a new charter automatically)</label>
+										</div>
+										<div class="flex items-center pt-4">
+											<input type="checkbox" id="person-is-skipper" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+											<label for="person-is-skipper" class="ml-2 block text-sm font-medium text-gray-700">Skipper</label>
+										</div>
+										<div class="flex items-center pt-4">
+											<input type="checkbox" id="person-is-agent" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+											<label for="person-is-agent" class="ml-2 block text-sm font-medium text-gray-700">Agent</label>
+										</div>
+										<div>
+											<label for="person-company" class="text-sm font-medium text-gray-600">Company Name</label>
+											<input type="text" id="person-company" placeholder="Company Name" class="w-full p-2 border rounded mt-1">
+										</div>
+									</div>
+								</div>
+							</div>
+	
+						<div>
+							<h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Contact & Identification</h3>
+							<div class="space-y-4">
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="person-email" class="text-sm font-medium text-gray-600">Email Address</label>
+										<input type="email" id="person-email" placeholder="Email Address" class="w-full p-2 border rounded mt-1">
+									</div>
+									<div>
+										<label for="person-phone" class="text-sm font-medium text-gray-600">Phone Number</label>
+										<input type="tel" id="person-phone" placeholder="Phone Number" class="w-full p-2 border rounded mt-1">
+									</div>
+								</div>
+								<div>
+									<label for="person-address" class="text-sm font-medium text-gray-600">Address</label>
+									<input type="text" id="person-address" placeholder="Address" class="w-full p-2 border rounded mt-1">
+								</div>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="person-birth-date" class="text-sm font-medium text-gray-600">Birth Date</label>
+										<input type="date" id="person-birth-date" class="w-full p-2 border rounded mt-1">
+									</div>
+									<div>
+										<label for="person-nationality" class="text-sm font-medium text-gray-600">Nationality</label>
+										<input type="text" id="person-nationality" placeholder="Nationality" class="w-full p-2 border rounded mt-1">
+									</div>
+								</div>
+								<div>
+									<label for="person-identification" class="text-sm font-medium text-gray-600">Identification (ID/Passport)</label>
+									<input type="text" id="person-identification" placeholder="Identification (ID/Passport)" class="w-full p-2 border rounded mt-1">
+								</div>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="person-tax-number" class="text-sm font-medium text-gray-600">Tax Number</label>
+										<input type="text" id="person-tax-number" placeholder="Tax Number" class="w-full p-2 border rounded mt-1">
+									</div>
+									<div>
+										<label for="person-tax-office" class="text-sm font-medium text-gray-600">Tax Office</label>
+										<input type="text" id="person-tax-office" placeholder="Tax Office" class="w-full p-2 border rounded mt-1">
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div>
+							<h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Charter Agreement</h3>
+							<div class="space-y-4">
+								<div>
+									<label for="person-price" class="text-sm font-medium text-gray-600">Price</label>
+									<input type="text" id="person-price" placeholder="Price" class="w-full p-2 border rounded mt-1">
+								</div>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="person-start-date" class="text-sm font-medium text-gray-600">Start Date</label>
+										<input type="date" id="person-start-date" class="w-full p-2 border rounded mt-1">
+									</div>
+									<div>
+										<label for="person-end-date" class="text-sm font-medium text-gray-600">End Date</label>
+										<input type="date" id="person-end-date" class="w-full p-2 border rounded mt-1">
+									</div>
+								</div>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="person-start-location" class="text-sm font-medium text-gray-600">Start Location</label>
+										<input type="text" id="person-start-location" placeholder="Start Location" class="w-full p-2 border rounded mt-1">
+									</div>
+									<div>
+										<label for="person-end-location" class="text-sm font-medium text-gray-600">End Location</label>
+										<input type="text" id="person-end-location" placeholder="End Location" class="w-full p-2 border rounded mt-1">
+									</div>
+								</div>
+									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="person-sign-date" class="text-sm font-medium text-gray-600">Sign Date</label>
+										<input type="date" id="person-sign-date" class="w-full p-2 border rounded mt-1">
+									</div>
+									<div>
+										<label for="person-verification-date" class="text-sm font-medium text-gray-600">Verification Date</label>
+										<input type="date" id="person-verification-date" class="w-full p-2 border rounded mt-1">
+									</div>
+								</div>
+							</div>
+						</div>
+	
+						
+						<details class="bg-gray-50 p-4 rounded-lg">
+							<summary class="font-semibold text-gray-700 cursor-pointer">Additional Details</summary>
+							<div class="mt-4 space-y-4">
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="person-crew_name1" class="text-sm font-medium text-gray-600">Crew Name 1</label>
+										<input type="text" id="person-crew_name1" placeholder="Crew Name 1" class="w-full p-2 border rounded mt-1">
+									</div>
+									<div>
+										<label for="person-crew_name2" class="text-sm font-medium text-gray-600">Crew Name 2</label>
+										<input type="text" id="person-crew_name2" placeholder="Crew Name 2" class="w-full p-2 border rounded mt-1">
+									</div>
+								</div>
+								<div>
+									<label for="person-notes" class="text-sm font-medium text-gray-600">Notes</label>
+									<textarea id="person-notes" placeholder="Notes..." class="w-full p-2 border rounded mt-1" rows="3"></textarea>
+								</div>
+							</div>
+						</details>
+					</div>
+	
+					<div class="flex justify-end space-x-4 mt-8">
+						<button type="button" id="person-modal-close" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Cancel</button>
+						<button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Save</button>
+					</div>
+				</form>
+			</div>
+		</div>
+		
+    <!-- Multi-Person Modal -->
+    <div id="multi-person-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+            <h2 id="multi-modal-title" class="text-xl font-bold mb-4">Add Multiple People</h2>
+            <form id="multi-person-form">
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-600">Paste data in CSV format. The first line must be a header with the correct column names. The 'name' column is required.</p>
+                    <div id="multi-modal-header" class="p-2 bg-gray-100 rounded-md text-xs font-mono text-gray-500">
+                        <strong>Expected Header:</strong> name,title,company,crew_name1,crew_name2,email,address,phone,birth_date,price,start_date,
+												end_date,sign_date,verification_date,start_location,end_location,identification,
+												nationality,tax_number,tax_office,notes
+                    </div>
+                    <textarea id="multi-person-data" placeholder="name,email,company..." class="w-full p-2 border rounded font-mono" rows="10" required></textarea>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="multi-person-modal-close" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Save Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Group Modal -->
+     <div id="group-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h2 id="group-modal-title" class="text-xl font-bold mb-4">Add Charter</h2>
+            <form id="group-form">
+                <input type="hidden" id="group-id">
+                <div class="space-y-4">
+                    <input type="text" id="group-name" placeholder="Group Name" class="w-full p-2 border rounded" required>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="group-modal-close" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+	<!-- Add to Group Modal -->
+	<div id="add-to-group-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+		<div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+			<h2 id="add-to-group-modal-title" class="text-xl font-bold mb-4">Add People to Group</h2>
+			<form id="add-to-group-form">
+				<input type="hidden" id="add-to-group-id">
+				<div class="space-y-4">
+					<div>
+						<label for="add-people-select" class="text-sm text-gray-500">Select People to Add</label>
+						<select id="add-people-select" multiple></select>
+					</div>
+				</div>
+				<div class="flex justify-end space-x-4 mt-6">
+					<button type="button" id="add-to-group-modal-close" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Cancel</button>
+					<button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Add to Group</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+
+		<div id="edit-group-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+			<div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+				<h2 class="text-xl font-bold mb-4">Edit Charter</h2>
+				<form id="edit-group-form">
+					<input type="hidden" id="edit-group-id">
+					<div class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+    <div>
+        <label for="edit-group-name" class="text-sm text-gray-500">Group Name</label>
+        <input type="text" id="edit-group-name" class="w-full p-2 border rounded" required>
+    </div>
+
+    <div class="flex space-x-4">
+        <div class="w-1/2">
+            <label for="people-not-in-group-select" class="text-sm text-gray-500">Available People (select to add)</label>
+            <select id="people-not-in-group-select" multiple></select>
+        </div>
+		<div class="w-1/2">
+            <label for="people-in-group-select" class="text-sm text-gray-500">People in this Group (select to remove)</label>
+            <select id="people-in-group-select" multiple></select>
+        </div>
+    </div>
+</div>
+					<div class="flex justify-end space-x-4 mt-6">
+						<button type="button" id="edit-group-modal-close" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Cancel</button>
+						<button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Save Changes</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+    <!-- Template Modal -->
+    <div id="template-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
+            <h2 id="template-modal-title" class="text-xl font-bold mb-4">Add Template</h2>
+            <form id="template-form">
+                <input type="hidden" id="template-id">
+                <input type="hidden" id="template-file-content">
+                <input type="hidden" id="template-file-type">
+                <div class="space-y-4">
+                    <input type="text" id="template-name" placeholder="Template Name" class="w-full p-2 border rounded" required>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-2">Upload a .docx or .xlsx file with placeholders like `{{name}}`.</p>
+                        <input type="file" id="template-file-input" class="hidden" accept=".docx,.xlsx" multiple>
+                        <div class="flex items-center space-x-4">
+                            <button type="button" id="template-choose-file-btn" class="flex items-center text-sm bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                Choose File
+                            </button>
+                            <span id="template-file-name" class="text-gray-500 text-sm truncate">No file chosen</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="template-modal-close" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Cancel</button>
+                    <button type="submit" id="template-save-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:bg-indigo-400" disabled>Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module">
+	
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        
+        // --- Global State ---
+        let supabase;
+        let groups = [];
+		let people = [];
+        let templates = [];
+        let currentView = 'people';
+        let libsReady = false;
+        let calendarViewMode = 'Weeks';
+        let currentGroupFilter = 'all';
+		let currentSortOption = 'created_at_desc'; 
+		let currentSearchTerm = ''; 
+		let searchDebounceTimeout; 
+		let currentGroupSearchTerm = ''; 
+		let currentGroupSortOption = 'created_at_desc'; 
+		let currentYearFilter = new Date().getFullYear().toString(); 
+		let currentCalendarYearFilter = new Date().getFullYear().toString();
+		let currentCalendarMonthFilter = new Date().getMonth(); 
+		let groupSearchDebounceTimeout; 
+		let choicesInstance = null;
+		let addToGroupChoicesInstance = null; 
+		let choicesInGroup = null; 
+		let choicesNotInGroup = null; 
+
+        // --- DOM Elements ---
+        const mainContent = document.getElementById('main-content');
+		const views = {
+            groups: document.getElementById('view-groups'),
+			people: document.getElementById('view-people'),
+            calendar: document.getElementById('view-calendar'),
+            templates: document.getElementById('view-templates'),
+            generator: document.getElementById('view-generator'),
+        };
+        const navButtons = {
+            groups: document.getElementById('nav-groups'),
+			people: document.getElementById('nav-people'),
+            calendar: document.getElementById('nav-calendar'),
+            templates: document.getElementById('nav-templates'),
+            generator: document.getElementById('nav-generator'),
+        };
+        const personModal = document.getElementById('person-modal');
+        const personForm = document.getElementById('person-form');
+        const multiPersonModal = document.getElementById('multi-person-modal');
+        const multiPersonForm = document.getElementById('multi-person-form');
+        const groupModal = document.getElementById('group-modal');
+        const groupForm = document.getElementById('group-form');
+        const templateModal = document.getElementById('template-modal');
+        const templateForm = document.getElementById('template-form');
+
+        // --- Utility Functions ---
+        const getSafeString = (value) => {
+            if (value && typeof value === 'object') {
+                if (Array.isArray(value)) return value.join(', ');
+                if (value.name) return value.name;
+                return JSON.stringify(value);
+            }
+            return value || '';
+        };
+        
+		// Add this with your other utility functions at the top of the script
+		const getPersonDisplayTitle = (person) => {
+			if (person.is_charterer) return 'Charterer';
+			if (person.is_skipper) return 'Skipper';
+			if (person.is_agent) return 'Agent';
+			return getSafeString(person.title); // For other titles like 'Agent'
+		};
+
+		const getChartererDetails = (groupId) => {
+            const members = people.filter(p => p.groups && p.groups.includes(groupId));
+            const charterer = members.find(p => p.is_charterer === true);
+            
+            if (charterer && charterer.price) {
+                // NEW: Clean the price string before parsing to handle formats like "€10,000.00"
+                const cleanPrice = String(charterer.price).replace(/[^\d.]/g, '');
+                return parseFloat(cleanPrice) || 0;
+            }
+            
+            return 0;
+        };
+		
+		const parseCSVLine = (line) => {
+            const result = [];
+            let pos = 0;
+
+            while (pos < line.length) {
+                let value;
+                // Check if the field is quoted
+                if (line[pos] === '"') {
+                    pos++; // Move past the opening quote
+                    let end = pos;
+                    while (end < line.length) {
+                        // Find the closing quote, accounting for escaped quotes ("")
+                        if (line[end] === '"' && line[end + 1] === '"') {
+                            end += 2; // Skip the escaped quote pair
+                        } else if (line[end] === '"') {
+                            break; // Found the closing quote
+                        } else {
+                            end++;
+                        }
+                    }
+                    // Extract the content, removing outer quotes and un-escaping inner quotes
+                    value = line.substring(pos, end).replace(/""/g, '"');
+                    pos = end + 1; // Move position past the closing quote
+                } else {
+                    // Unquoted field
+                    let end = line.indexOf(',', pos);
+                    if (end === -1) {
+                        end = line.length;
+                    }
+                    value = line.substring(pos, end);
+                    pos = end;
+                }
+                
+                result.push(value);
+                
+                // Move past the next comma
+                if (line[pos] === ',') {
+                    pos++;
+                }
+            }
+            
+            // This handles cases where a line ends with a comma (an empty last field)
+            if (line.endsWith(',')) {
+                result.push('');
+            }
+
+            return result;
+        };
+		
+        const escapeRegExp = (string) => {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        const numberToWords = (num) => {
+            if (num === null || num === undefined || num === '') return '';
+            let s = String(num).replace(/[\,]/g, '');
+            if (isNaN(parseFloat(s))) return '';
+
+            const ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+            const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+            const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+            const scales = ['', 'thousand', 'million', 'billion', 'trillion'];
+
+            function convertGroup(n) {
+                let str = '';
+                let hundreds = Math.floor(n / 100);
+                let rest = n % 100;
+                if (hundreds > 0) {
+                    str += ones[hundreds] + ' hundred';
+                    if (rest > 0) str += ' ';
+                }
+                if (rest > 0) {
+                    if (rest < 10) str += ones[rest];
+                    else if (rest < 20) str += teens[rest - 10];
+                    else {
+                        str += tens[Math.floor(rest / 10)];
+                        if (rest % 10 > 0) str += ' ' + ones[rest % 10];
+                    }
+                }
+                return str;
+            }
+
+            let integerPart = String(Math.trunc(parseFloat(s)));
+            if (integerPart === '0') return 'zero';
+
+            let words = '';
+            let groupCount = 0;
+            while (integerPart.length > 0) {
+                let group = parseInt(integerPart.slice(-3));
+                if (group > 0) {
+                    words = convertGroup(group) + (groupCount > 0 ? ' ' + scales[groupCount] : '') + (words ? ' ' + words : '');
+                }
+                integerPart = integerPart.slice(0, -3);
+                groupCount++;
+            }
+            
+            let finalWords = words.trim();
+            return finalWords.charAt(0).toUpperCase() + finalWords.slice(1);
+        };
+
+
+        const loadScriptWithFallback = (primarySrc, fallbackSrc) => new Promise((resolve, reject) => {
+            //if (document.querySelector(`script[src="${primarySrc}"], script[src="${fallbackSrc}"]`)) return resolve();
+            
+            const script = document.createElement('script');
+            script.src = primarySrc;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = () => {
+                console.warn(`Failed to load primary script: ${primarySrc}. Trying fallback...`);
+                script.remove();
+                
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = fallbackSrc;
+                fallbackScript.async = true;
+                fallbackScript.onload = resolve;
+                fallbackScript.onerror = () => reject(new Error(`Failed to load both primary and fallback scripts for: ${primarySrc}`));
+                document.body.appendChild(fallbackScript);
+            };
+            document.body.appendChild(script);
+        });
+
+                async function fetchDataAndRender() {
+                    const { data: peopleData, error: peopleError } = await supabase.from('people').select('*').order('name');
+                    if (peopleError) throw peopleError;
+                    people = peopleData || [];
+
+                    const { data: groupsData, error: groupsError } = await supabase.from('groups').select('*').order('name');
+                    if (groupsError) throw groupsError;
+                    groups = groupsData || [];
+
+                    const { data: templatesData, error: templatesError } = await supabase.from('templates').select('*').order('name');
+                    if (templatesError) throw templatesError;
+                    templates = templatesData || [];
+
+                    switchView(currentView, true); // Force re-render of current view
+                };
+
+        // --- View Rendering ---
+		
+		 function renderPeople() {
+            // This function now only builds the static container and controls
+			const groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            const content = `
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold">People</h2>
+                        <div class="flex items-center space-x-2 relative z-50">
+                            <div class="relative w-48">
+								<input type="text" id="search-people" placeholder="Search name, company..." class="w-full p-2 pr-8 border rounded">
+								<button id="clear-search-btn" class="absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 hover:text-gray-600  hidden">&times;</button>
+							</div>
+                            <select id="sort-people" class="w-48 p-2 border rounded bg-white">
+                                <option value="created_at_desc">Newest First</option>
+                                <option value="created_at_asc">Oldest First</option>
+								<option value="name_asc">Name (A-Z)</option>
+                                <option value="name_desc">Name (Z-A)</option>
+                                <option value="company_asc">Company (A-Z)</option>
+                                <option value="price_desc">Price (High to Low)</option>
+                                <option value="price_asc">Price (Low to High)</option>
+                                
+                            </select>
+                            <select id="group-filter" class="w-48 p-2 border rounded bg-white">
+								<option value="all">All Charters</option>
+								${groupOptions}
+                            </select>
+							<button id="export-csv-btn" class="flex items-center bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors shadow">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                Export CSV
+                            </button> 
+                            <button id="add-multi-person-btn" class="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Add Multiple
+                            </button>
+                            <button id="add-person-btn" class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow">
+                                Add Person
+                            </button>
+                        </div>
+                    </div>
+                    <div id="people-list-container"></div>
+                </div>`;
+            views.people.innerHTML = content;
+            //renderPeopleList(); // Initial render of the list
+        		
+		    // --- START: Add Direct Event Listeners Here ---
+			document.getElementById('search-people').addEventListener('input', e => {
+				clearTimeout(searchDebounceTimeout);
+				searchDebounceTimeout = setTimeout(() => {
+					currentSearchTerm = e.target.value;
+					renderPeopleList();
+				}, 250);
+			});
+			
+			document.getElementById('sort-people').addEventListener('change', e => {
+				currentSortOption = e.target.value;
+				renderPeopleList();
+			});
+		
+			document.getElementById('group-filter').addEventListener('change', e => {
+				currentGroupFilter = e.target.value;
+				renderPeopleList();
+			});
+			// --- END: Direct Event Listeners ---
+			
+			
+			renderPeopleList();
+		};
+	
+		const renderPeopleList = () => {
+            // This new function only re-renders the list, not the controls
+            const sortedPeople = [...people];
+          switch (currentSortOption) {
+			case 'name_desc':
+				sortedPeople.sort((a, b) => getSafeString(b.name).localeCompare(getSafeString(a.name)));
+				break;
+			case 'name_asc':
+				sortedPeople.sort((a, b) => getSafeString(a.name).localeCompare(getSafeString(a.name)));
+				break;
+			case 'created_at_asc':
+				sortedPeople.sort((a, b) => a.created_at.localeCompare(b.created_at));
+				break;
+			case 'company_asc':
+				sortedPeople.sort((a, b) => getSafeString(a.company).localeCompare(getSafeString(b.company)));
+				break;
+			case 'price_desc':
+				sortedPeople.sort((a, b) => (b.price || 0) - (a.price || 0));
+				break;
+			case 'price_asc':
+				sortedPeople.sort((a, b) => (a.price || 0) - (b.price || 0));
+				break;
+			case 'created_at_desc':
+			default:
+				sortedPeople.sort((a, b) => b.created_at.localeCompare(a.created_at));
+				break;
+			}
+			
+			let searchedPeople = sortedPeople;
+				if (currentSearchTerm) {
+					const lowercasedTerm = currentSearchTerm.toLowerCase();
+					searchedPeople = sortedPeople.filter(p => 
+						getSafeString(p.name).toLowerCase().includes(lowercasedTerm) ||
+						getSafeString(p.company).toLowerCase().includes(lowercasedTerm) ||
+						getSafeString(p.email).toLowerCase().includes(lowercasedTerm)
+					);
+				}
+             
+             const filteredPeople = currentGroupFilter === 'all' 
+                ? searchedPeople   
+                : searchedPeople.filter(p => p.groups && p.groups.includes(currentGroupFilter));
+				
+				let content = '';
+            if (filteredPeople.length > 0) {
+                content += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+                filteredPeople.forEach(p => {
+						const personGroups = (p.groups || []).map(groupId => {
+                        const group = groups.find(g => g.id === groupId);
+                        return group ? `<span class="bg-gray-200 text-gray-700 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">${group.name}</span>` : '';
+                    }).join('');
+
+                    content += `
+                        <div class="border border-gray-200 p-4 rounded-lg hover:shadow-md transition-shadow">
+                            <div class="mt-2 mb-2">${personGroups}</div>
+							<h3 class="font-bold text-lg">${getSafeString(p.name)}</h3>
+                            
+							<p class="text-sm text-gray-900 font-medium">${getPersonDisplayTitle(p)}</p>
+                            <p class="text-sm text-gray-500">${getSafeString(p.company)}</p>
+                            
+                            <p class="text-sm text-gray-900 mt-2">${getSafeString(p.email)}</p>
+                            <p class="text-sm text-gray-900">${getSafeString(p.address)}</p>
+                            <p class="text-sm text-gray-900">${getSafeString(p.phone)}</p>
+                            <div class="mt-2 pt-2 border-t border-gray-200">
+                            <p class="text-xs text-gray-900"><strong>Birth Date:</strong> ${getSafeString(p.birth_date)}</p>
+							<p class="text-xs text-gray-900"><strong>Nationality:</strong> ${getSafeString(p.nationality)}</p>
+                            <p class="text-xs text-gray-900"><strong>ID:</strong> ${getSafeString(p.identification)}</p>
+							<p class="text-xs text-gray-900"><strong>Tax No.:</strong> ${getSafeString(p.tax_number)}</p>
+                            <p class="text-xs text-gray-900"><strong>Tax Office:</strong> ${getSafeString(p.tax_office)}</p>
+							<hr class="my-2 border-gray-200">
+                            <p class="text-xs text-gray-900"><strong>Price:</strong> ${getSafeString(p.price)}</p>
+                            <p class="text-xs text-gray-900"><strong>Dates:</strong> ${getSafeString(p.start_date)} to ${getSafeString(p.end_date)}</p>
+                            <p class="text-xs text-gray-900"><strong>Locations:</strong> ${getSafeString(p.start_location)} to ${getSafeString(p.end_location)}</p>
+                            <p class="text-xs text-gray-900"><strong>Sign Date:</strong> ${getSafeString(p.sign_date)} | <strong>Verification:</strong> ${getSafeString(p.verification_date)}</p>
+                                
+                            </div>
+                            <div class="mt-4 flex space-x-2">
+                                <button class="edit-person-btn text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300" data-id="${p.id}">Edit</button>
+                                <button class="delete-person-btn text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200" data-id="${p.id}">Delete</button>
+                            </div>
+                        </div>`;
+                });
+                content += '</div>';
+            } else {
+                content += '<p class="text-center text-gray-500 py-8">No people found for this filter. Add one to get started!</p>';
+            }
+		
+		// Update only the list container, not the whole view
+            const listContainer = document.getElementById('people-list-container');
+            if (listContainer) listContainer.innerHTML = content;
+            
+			const searchPeople = document.getElementById('search-people');
+            if (searchPeople) searchPeople.value = currentSearchTerm;
+			
+			const clearBtn = document.getElementById('clear-search-btn');
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !currentSearchTerm);
+            }
+        };
+		
+       
+		function renderGroups() {
+		// ...inside renderGroups()
+		// Extract unique years and ensure the current year is always an option
+			const existingYears = groups.map(g => {
+				const match = g.name.match(/(20\d{2})/);
+				return match ? match[1] : null;
+			}).filter(Boolean);
+		
+			const yearSet = new Set(existingYears);
+			yearSet.add(new Date().getFullYear().toString());
+		
+			const years = Array.from(yearSet).sort((a, b) => b - a);
+
+            // NEW: Build the HTML for the year options
+            let yearOptions = `<option value="all">All Years</option>`;
+            years.forEach(year => {
+                // Pre-select the option that matches the current filter state
+                yearOptions += `<option value="${year}" ${year === currentYearFilter ? 'selected' : ''}>${year}</option>`;
+            });
+			const content = `
+				<div class="bg-white p-6 rounded-lg shadow-sm">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="text-2xl font-semibold">Charters</h2>
+						<div class="flex items-center space-x-2">
+							<div class="relative w-48">
+								<input type="text" id="search-groups" placeholder="Search charters..." class="w-full p-2 pr-8 border rounded">
+								<button id="clear-group-search-btn" class="absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 hover:text-gray-600 hidden">&times;</button>
+							</div>
+							<select id="year-filter" class="w-32 p-2 border rounded bg-white">
+                                ${yearOptions}
+                            </select>
+							<select id="sort-groups" class="w-48 p-2 border rounded bg-white">
+								<option value="created_at_desc">Newest First</option>
+								<option value="created_at_asc">Oldest First</option>
+								<option value="name_asc">Name (A-Z)</option>
+								<option value="name_desc">Name (Z-A)</option>
+								<option value="price_desc">Price (High to Low)</option>
+								<option value="price_asc">Price (Low to High)</option>
+								
+							</select>
+							<button id="add-group-btn" class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+								Add Charter
+							</button>
+						</div>
+					</div>
+					<div id="group-list-container"></div>
+				</div>`;
+			views.groups.innerHTML = content;
+		
+			// --- Add Direct Event Listeners for Group Controls ---
+			document.getElementById('search-groups').addEventListener('input', e => {
+				clearTimeout(groupSearchDebounceTimeout);
+				groupSearchDebounceTimeout = setTimeout(() => {
+					currentGroupSearchTerm = e.target.value;
+					renderGroupsList();
+				}, 250);
+			});
+		
+            document.getElementById('year-filter').addEventListener('change', e => {
+                currentYearFilter = e.target.value;
+                renderGroupsList();
+            });
+			
+			document.getElementById('sort-groups').addEventListener('change', e => {
+				currentGroupSortOption = e.target.value;
+				renderGroupsList();
+			});
+			
+			// Listener for the new clear button
+			document.getElementById('clear-group-search-btn').addEventListener('click', e => {
+				currentGroupSearchTerm = '';
+				renderGroupsList();
+				document.getElementById('search-groups').focus();
+			});
+		
+			renderGroupsList();
+		};
+		
+		function renderGroupsList() {
+			// --- Search Filtering Logic ---
+			let processedGroups = [...groups];
+			if (currentGroupSearchTerm) {
+				const lowercasedTerm = currentGroupSearchTerm.toLowerCase();
+				processedGroups = processedGroups.filter(g =>
+					getSafeString(g.name).toLowerCase().includes(lowercasedTerm)
+				);
+			}
+
+            // NEW: Year Filtering Logic
+            if (currentYearFilter !== 'all') {
+                processedGroups = processedGroups.filter(g => g.name.includes(currentYearFilter));
+            }
+			// --- Sorting Logic ---
+			//const sortedGroups = [...groups];
+			switch (currentGroupSortOption) {
+			case 'name_desc':
+				processedGroups.sort((a, b) => getSafeString(b.name).localeCompare(getSafeString(a.name)));
+				break;
+			case 'name_asc':
+				processedGroups.sort((a, b) => getSafeString(a.name).localeCompare(getSafeString(b.name)));
+				break;
+			case 'created_at_asc': 
+				processedGroups.sort((a, b) => a.created_at.localeCompare(b.created_at));
+				break;
+			//case 'company_asc':
+				//sortedPeople.sort((a, b) => getSafeString(a.company).localeCompare(getSafeString(b.company)));
+				//break;
+			case 'price_desc':
+				processedGroups.sort((a, b) => getChartererDetails(b.id) - getChartererDetails(a.id));
+				break;
+			case 'price_asc':
+				processedGroups.sort((a, b) => getChartererDetails(a.id) - getChartererDetails(b.id));
+				break;
+			case 'created_at_desc': 
+			default:
+				processedGroups.sort((a, b) => b.created_at.localeCompare(a.created_at));
+				break;
+			}
+					
+
+			let content = '';
+			if (processedGroups.length > 0) {
+				content += '<div class="space-y-4">';
+				processedGroups.forEach(g => {
+				                    // NEW: Calculate how many people are in this group
+                    const memberCount = people.filter(p => p.groups && p.groups.includes(g.id)).length;
+                    // NEW: Create a styled badge to show the count
+                    let memberInfoHtml = '';
+                    if (memberCount > 0) {
+                        const plural = memberCount === 1 ? 'person' : 'people';
+                        memberInfoHtml = `<span class="ml-4 text-sm bg-blue-100 text-blue-800 font-medium px-2.5 py-0.5 rounded-full">${memberCount} ${plural}</span>`;
+                    } else {
+                        memberInfoHtml = `<span class="ml-4 text-sm bg-gray-100 text-gray-800 font-medium px-2.5 py-0.5 rounded-full">Empty</span>`;
+                    } 
+					
+					const members = people.filter(p => p.groups && p.groups.includes(g.id));
+					const charterer = members.find(p => p.is_charterer === true);
+					
+					
+					let detailsHtml = '';
+					if (charterer) {
+						detailsHtml = `
+							<span class="ml-6 text-sm text-gray-500">📅 ${getSafeString(charterer.start_date)} to ${getSafeString(charterer.end_date)}</span>
+							<span class="ml-4 text-sm text-gray-500">📍 ${getSafeString(charterer.start_location)} to ${getSafeString(charterer.end_location)}</span>
+							<span class="ml-4 text-sm text-gray-500">💰 ${getSafeString(charterer.price)}</span>
+						`;
+					}
+	
+						content += `
+						<div class="border border-gray-200 p-4 rounded-lg hover:shadow-md transition-shadow flex justify-between items-center">
+						<div class="flex items-baseline">
+							<h3 class="font-bold text-lg">${g.name}</h3>
+							${memberInfoHtml}
+							${detailsHtml}
+						</div>
+						<div class="flex space-x-2 flex-shrink-0">
+							<button class="edit-group-btn text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300" data-id="${g.id}">Edit Charter</button>
+							<button class="delete-group-btn text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200" data-id="${g.id}">Delete</button>
+						</div>
+					</div>`;
+					});
+	
+	content += '</div>';
+			} else {
+				content += '<p class="text-center text-gray-500 py-8">No charters found.</p>';
+			}
+		
+			const listContainer = document.getElementById('group-list-container');
+			if (listContainer) listContainer.innerHTML = content;
+			
+			// --- Update Control State ---
+			const searchInput = document.getElementById('search-groups');
+			if (searchInput) searchInput.value = currentGroupSearchTerm;
+			
+			const sortInput = document.getElementById('sort-groups');
+			if (sortInput) sortInput.value = currentGroupSortOption;
+			
+			const clearBtn = document.getElementById('clear-group-search-btn');
+			if (clearBtn) clearBtn.classList.toggle('hidden', !currentGroupSearchTerm);
+		};
+
+
+		// Add this function to open the modal
+		function openAddToGroupModal(groupId) {
+			const group = groups.find(g => g.id === groupId);
+			if (!group) return;
+		
+			// Set the modal title and hidden group ID
+			document.getElementById('add-to-group-modal-title').innerText = `Add People to "${group.name}"`;
+			document.getElementById('add-to-group-id').value = groupId;
+		
+			// Find people who are NOT already in this group
+			const peopleNotInGroup = people.filter(p => !p.groups || !p.groups.includes(groupId));
+		
+			// Destroy previous instance if it exists
+			if (addToGroupChoicesInstance) {
+				addToGroupChoicesInstance.destroy();
+			}
+		
+			const peopleSelect = document.getElementById('add-people-select');
+			// Populate the select with people not in the group
+			peopleSelect.innerHTML = peopleNotInGroup.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+		
+			// Initialize Choices.js
+			addToGroupChoicesInstance = new Choices(peopleSelect, {
+				removeItemButton: true,
+				placeholder: true,
+				placeholderValue: 'Select people to add...',
+			});
+		
+			// Show the modal
+			document.getElementById('add-to-group-modal').classList.remove('hidden');
+		}
+		
+		// Add this function to handle saving the changes
+		async function savePeopleToGroup(e) {
+			e.preventDefault();
+			const groupId = document.getElementById('add-to-group-id').value;
+			const selectedPeopleIds = addToGroupChoicesInstance.getValue(true);
+		
+			if (selectedPeopleIds.length === 0) {
+				document.getElementById('add-to-group-modal').classList.add('hidden');
+				return;
+			}
+		
+			// Prepare the data for Supabase
+			const peopleToUpdate = selectedPeopleIds.map(personId => {
+				const person = people.find(p => p.id === personId);
+				// Add the new group ID, ensuring no duplicates
+				const updatedGroups = [...new Set([...(person.groups || []), groupId])];
+				return { ...person, groups: updatedGroups };
+			});
+		
+			// Save the updated people to the database
+			const { error } = await supabase.from('people').upsert(peopleToUpdate);
+		
+			if (error) {
+				console.error("Error adding people to group:", error);
+				alert("Could not add people to the group. Check console for details.");
+			} else {
+					peopleToUpdate.forEach(updatedPerson => {
+					const index = people.findIndex(p => p.id === updatedPerson.id);
+					if (index !== -1) {
+						people[index] = updatedPerson;
+					}
+				});
+				document.getElementById('add-to-group-modal').classList.add('hidden');
+			}
+		}
+
+
+		function openEditGroupModal(groupId) {
+			const group = groups.find(g => g.id === groupId);
+			if (!group) return;
+		
+			// Set group name and ID
+			document.getElementById('edit-group-name').value = group.name;
+			document.getElementById('edit-group-id').value = groupId;
+		
+			// Filter people into two lists
+			const peopleInGroup = people.filter(p => p.groups && p.groups.includes(groupId));
+			const peopleNotInGroup = people.filter(p => !p.groups || !p.groups.includes(groupId));
+		
+			// Destroy previous instances
+			if (choicesInGroup) choicesInGroup.destroy();
+			if (choicesNotInGroup) choicesNotInGroup.destroy();
+		
+			// --- Configuration for "People in this Group" (NO SEARCH) ---
+			const inGroupSelect = document.getElementById('people-in-group-select');
+			inGroupSelect.innerHTML = peopleInGroup.map(p => `<option value="${p.id}" selected>${p.name}</option>`).join('');
+			choicesInGroup = new Choices(inGroupSelect, {
+				removeItemButton: true,
+				searchEnabled: false,
+				shouldSort: false,
+				placeholder: false
+			});
+		
+			// --- Configuration for "Available People" (WITH SEARCH) ---
+			const notInGroupSelect = document.getElementById('people-not-in-group-select');
+			notInGroupSelect.innerHTML = peopleNotInGroup.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+			choicesNotInGroup = new Choices(notInGroupSelect, {
+				removeItemButton: true,
+				searchEnabled: true,
+				placeholderValue: 'Search and select people to add...',
+				searchResultLimit: 99 // Ensures all results can be found
+			});
+		
+			document.getElementById('edit-group-modal').classList.remove('hidden');
+		}
+
+async function updateGroup(e) {
+			e.preventDefault();
+			const groupId = document.getElementById('edit-group-id').value;
+			const newGroupName = document.getElementById('edit-group-name').value;
+			
+			// This logic is simplified in the new code, but the result is the same.
+			const originalPeopleInGroup = people.filter(p => p.groups && p.groups.includes(groupId)).map(p => p.id);
+			const finalPeopleInGroup = choicesInGroup.getValue(true);
+			const peopleToAdd = choicesNotInGroup.getValue(true);
+
+			const allFinalMembers = [...new Set([...finalPeopleInGroup, ...peopleToAdd])];
+			
+			const peopleToUpdate = [];
+
+			// Find people who are now in the group
+			allFinalMembers.forEach(personId => {
+				const person = people.find(p => p.id === personId);
+				if (person && (!person.groups || !person.groups.includes(groupId))) {
+					const updatedGroups = [...new Set([...(person.groups || []), groupId])];
+					peopleToUpdate.push({ ...person, groups: updatedGroups });
+				}
+			});
+
+			// Find people who were removed from the group
+			originalPeopleInGroup.forEach(personId => {
+				if (!allFinalMembers.includes(personId)) {
+					const person = people.find(p => p.id === personId);
+					if (person) {
+						const updatedGroups = person.groups.filter(gId => gId !== groupId);
+						peopleToUpdate.push({ ...person, groups: updatedGroups });
+					}
+				}
+			});
+
+
+			// Save all changes to people and the group name
+			const { error: peopleError } = peopleToUpdate.length > 0 ? await supabase.from('people').upsert(peopleToUpdate) : { error: null };
+			const { error: groupError } = await supabase.from('groups').update({ name: newGroupName }).eq('id', groupId);
+		
+			if (peopleError || groupError) {
+				console.error("Error updating group:", peopleError || groupError);
+				alert("Could not update group. Check console for details.");
+			} else {
+				// Manually update the local state for immediate feedback
+				const group = groups.find(g => g.id === groupId);
+				if(group) group.name = newGroupName;
+
+				peopleToUpdate.forEach(updatedPerson => {
+					const index = people.findIndex(p => p.id === updatedPerson.id);
+					if (index !== -1) {
+						people[index] = updatedPerson;
+					}
+				});
+
+				document.getElementById('edit-group-modal').classList.add('hidden');
+				
+				// Rerender the list to show the new count
+				renderGroupsList();
+			}
+		}
+
+
+        const renderTemplates = () => {
+             const placeholderList = [
+                'name', 'title', 'company', 'crew_name1', 'crew_name2', 'email', 'address', 'phone', 
+                'birth_date', 'price', 'price_in_words', 'start_date', 'end_date', 'sign_date', 
+                'verification_date', 'start_location', 'end_location', 
+                'identification', 'nationality', 'tax_number', 'tax_office', 
+                'notes', 'date', 'group_name','group_start_date','group_end_date','group_start_location','group_end_location','row_number','prefix_word','agent_name','agent_address','agent_identification','agent_tax_number','agent_tax_office','agent_phone','agent_email','charterer_name','charterer_address','charterer_identification','charterer_tax_number','charterer_tax_office','charterer_phone','charterer_email','charterer_nationality','charterer_sign_date','charterer_start_date','charterer_start_location','charterer_end_date','charterer_end_location','charterer_price','charterer_price_in_words','charterer_verification_date'
+             ];
+             const placeholderHtml = placeholderList.map(p => {
+                const personFields = [
+                    'name', 'title', 'company', 'crew_name1', 'crew_name2', 'email', 'address', 'phone',
+                    'birth_date', 'price', 'price_in_words', 'start_date', 'end_date', 'sign_date',
+                    'verification_date', 'start_location', 'end_location', 'identification',
+                    'nationality', 'tax_number', 'tax_office', 'notes'
+                ];
+				if (personFields.includes(p)) { 
+                     return `<code class="bg-gray-200 text-gray-700 text-xs font-mono px-2 py-1 rounded-md">{{people.${p}}}</code>`;
+                }
+                return `<code class="bg-gray-200 text-gray-700 text-xs font-mono px-2 py-1 rounded-md">{{${p}}}</code>`
+             }).join('');
+
+             let content = `
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold">Templates</h2>
+                        <button id="add-template-btn" class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            Add Template
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                        <h4 class="font-semibold text-gray-700 mb-2">Available Placeholders</h4>
+                        <p class="text-sm text-gray-600 mb-1">For <strong class="font-semibold">.docx</strong> group templates, use <code class="bg-gray-200 text-xs">{#people}</code> and <code class="bg-gray-200 text-xs">{/people}</code> to loop through members.</p>
+                        <p class="text-sm text-gray-600 mb-3">For <strong class="font-semibold">.xlsx</strong> group templates, use placeholders with the <code class="bg-gray-200 text-xs">people.</code> prefix (e.g., <code class="bg-gray-200 text-xs">{{people.name}}</code>) in a row to create a loop.</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${placeholderHtml}
+                        </div>
+                    </div>
+            `;
+            if (templates.length > 0) {
+                content += '<div class="space-y-4">';
+                templates.forEach(t => {
+                    const icon = t.fileType === 'xlsx' 
+                        ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2 text-green-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m15.46 12.86-2.92 2.92c-.33.33-.89.33-1.22 0l-2.92-2.92c-.33-.33-.33-.89 0-1.22l2.92-2.92c.33-.33.89-.33 1.22 0l2.92 2.92c.33.33.33.89 0 1.22z"></path></svg>`
+                        : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2 text-blue-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="M12 12H9"></path><path d="M15 12H9"></path></svg>`;
+                    
+                    content += `
+                        <div class="border border-gray-200 p-4 rounded-lg hover:shadow-md transition-shadow flex justify-between items-center">
+                            <div class="flex items-center">
+                                ${icon}
+                                <h3 class="font-bold text-lg">${t.name}</h3>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="edit-template-btn text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300" data-id="${t.id}">Edit</button>
+                                <button class="delete-template-btn text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200" data-id="${t.id}">Delete</button>
+                            </div>
+                        </div>`;
+                });
+                content += '</div>';
+            } else {
+                 content += '<p class="text-center text-gray-500 py-8">No templates found. Create one to generate documents.</p>';
+            }
+            content += '</div>';
+            views.templates.innerHTML = content;
+        };
+        
+        const renderGenerator = () => {
+            let peopleOptions = people.map(p => `<option value="${p.id}">${getSafeString(p.name)}</option>`).join('');
+            let groupOptions = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            let templateOptions = templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+
+            const buttonDisabled = !libsReady;
+            const buttonText = libsReady ? 'Generate & Download File' : 'Initializing...';
+            const buttonIcon = libsReady 
+                ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`
+                : `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>`;
+
+            views.generator.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-semibold mb-4">Generate Document</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="text-sm text-gray-500">Generate for:</label>
+                             <select id="generator-type-select" class="w-full p-2 border rounded bg-white">
+                                <option value="group">Group</option>
+								<option value="person">Single Person</option>
+                            </select>
+                        </div>
+                        <div>
+                             <label class="text-sm text-gray-500">Select Item:</label>
+                            <select id="generator-item-select" class="w-full p-2 border rounded bg-white">
+                                <!-- options will be populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+                     <div class="grid grid-cols-1 gap-4 mb-6">
+                         <label class="text-sm text-gray-500">Select Template:</label>
+                        <select id="template-select" class="w-full p-2 border rounded bg-white">
+                            <option value="">-- Select a Template --</option>
+                            ${templateOptions}
+                        </select>
+                    </div>
+                    <div class="border border-gray-200 p-8 rounded-lg bg-gray-50 min-h-[300px] flex flex-col items-center justify-center text-center">
+                        <h3 class="font-semibold text-lg mb-2">Generate a Document</h3>
+                        <p class="text-gray-500 mb-6 max-w-md">Select a source and a template above to download a new file (or files) with the placeholders filled in.</p>
+                        <button id="generate-btn" class="flex items-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed" ${buttonDisabled ? 'disabled' : ''}>
+                           <span id="generate-btn-icon">${buttonIcon}</span>
+                           <span id="generate-btn-text">${buttonText}</span>
+                        </button>
+                         <p id="xlsx-warning" class="text-red-500 text-xs mt-4 hidden">Group generation is only supported for .docx files.</p>
+                    </div>
+                </div>`;
+            updateGeneratorItemOptions();
+        };
+
+         const updateGeneratorItemOptions = () => {
+            const typeSelect = document.getElementById('generator-type-select');
+            const itemSelect = document.getElementById('generator-item-select');
+            if (!typeSelect || !itemSelect) return;
+
+            const type = typeSelect.value;
+            if (type === 'person') {
+                itemSelect.innerHTML = `<option value="">-- Select a Person --</option>` + people.map(p => `<option value="${p.id}">${getSafeString(p.name)}</option>`).join('');
+            } else { // group
+                itemSelect.innerHTML = `<option value="">-- Select a Charter --</option>` + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            }
+        };
+        
+		const renderCalendar = () => {
+			// --- Get Year Filter Options ---
+			const years = [...new Set(
+				people.map(p => p.start_date ? p.start_date.substring(0, 4) : null).filter(Boolean)
+			)].sort((a, b) => b - a);
+
+			let yearOptions = `<option value="all">All Years</option>`;
+			years.forEach(year => {
+				yearOptions += `<option value="${year}" ${year === currentCalendarYearFilter ? 'selected' : ''}>${year}</option>`;
+			});
+			
+			// --- START: New logic to build the month picker ---
+			const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+			let monthOptions = `<option value="all">All Months (Full Year)</option>`;
+			monthNames.forEach((month, index) => {
+				monthOptions += `<option value="${index}" ${index === currentCalendarMonthFilter ? 'selected' : ''}>${month}</option>`;
+			});
+			// --- END: New logic for month picker ---
+
+			views.calendar.innerHTML = `
+				<div class="bg-white p-6 rounded-lg shadow-sm">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="text-2xl font-semibold">Calendar</h2>
+						<div class="flex items-center space-x-4">
+							 <select id="calendar-year-filter" class="w-32 p-2 border rounded bg-white">
+								${yearOptions}
+							 </select>
+							 <select id="calendar-month-filter" class="w-48 p-2 border rounded bg-white">
+								${monthOptions}
+							 </select>
+							 <button id="calendar-view-mode" class="px-4 py-2 text-sm bg-blue-500 text-white rounded-md">${calendarViewMode}</button>
+						</div>
+					</div>
+					<div id="timeline-container" class="overflow-x-auto"></div>
+				</div>
+			`;
+
+			// --- Add Event Listeners for the new dropdowns ---
+			document.getElementById('calendar-year-filter').addEventListener('change', (e) => {
+				currentCalendarYearFilter = e.target.value;
+				renderCalendar(); // Re-render the calendar for the new year
+			});
+			
+			document.getElementById('calendar-month-filter').addEventListener('change', (e) => {
+				// 'e.target.value' will be a string, convert to number if it's not 'all'
+				const selectedMonth = e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10);
+				currentCalendarMonthFilter = selectedMonth;
+				renderCalendar(); // Re-render the calendar for the new month
+			});
+
+			// --- Calculate date range and render the timeline ---
+			let start, end;
+			// Determine the year to display. Default to the current year if 'All Years' is selected.
+			const displayYear = currentCalendarYearFilter === 'all' ? new Date().getFullYear() : parseInt(currentCalendarYearFilter, 10);
+
+			if (currentCalendarMonthFilter === 'all') {
+				// If 'All Months' is selected, show the entire year
+				start = new Date(displayYear, 0, 1);  // January 1st
+				end = new Date(displayYear, 11, 31); // December 31st
+			} else {
+				// Otherwise, show the single selected month
+				start = new Date(displayYear, currentCalendarMonthFilter, 1);
+				end = new Date(displayYear, currentCalendarMonthFilter + 1, 0);
+			}
+
+			renderTimeline(start, end);
+		};
+
+		const renderTimeline = (start, end) => {
+    const container = document.getElementById('timeline-container');
+    if(!container) return;
+
+    let filteredPeople = [...people];
+    if (currentCalendarYearFilter !== 'all') {
+        filteredPeople = people.filter(p => {
+            if (!p.start_date) return false;
+            return p.start_date.substring(0, 4) === currentCalendarYearFilter;
+        });
+    }
+
+    const viewStart = new Date(start);
+    viewStart.setHours(0, 0, 0, 0);
+    const viewEnd = new Date(end);
+    viewEnd.setHours(23, 59, 59, 999);
+
+    const peopleInDateRange = filteredPeople.filter(p => {
+        if (!p.start_date || !p.end_date) return false;
+        const pStart = new Date(p.start_date);
+        const pEnd = new Date(p.end_date);
+        return pStart <= viewEnd && pEnd >= viewStart;
+    });
+
+    const peopleWithDates = peopleInDateRange;
+    
+    const days = [];
+    let currentDate = new Date(start);
+    end.setHours(23, 59, 59);
+    while(currentDate <= end) {
+        days.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    const dayWidth = calendarViewMode === 'Weeks' ? 40 : 60;
+    const gridCols = `minmax(150px, 1.5fr) repeat(${days.length}, minmax(${dayWidth}px, 1fr))`;
+    
+    let html = `<div class="grid relative" style="grid-template-columns: ${gridCols};">`;
+
+    // --- Header Calculation Logic ---
+    let headerRowCount = 0;
+    
+    let headerCornerHeight = 'h-20';
+    if (calendarViewMode === 'Weeks') {
+        headerCornerHeight = 'h-30';
+    }
+    html += `<div class="sticky top-0 left-0 bg-gray-100 z-30 border-b border-r ${headerCornerHeight}"></div>`; 
+    
+    const months = [];
+    days.forEach(d => {
+        const monthName = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        const lastMonth = months[months.length - 1];
+        if (!lastMonth || lastMonth.name !== monthName) {
+            months.push({ name: monthName, dayCount: 1 });
+        } else {
+            lastMonth.dayCount++;
+        }
+    });
+    months.forEach(m => {
+        html += `<div class="text-center font-bold border-b border-l p-2 sticky top-0 bg-gray-200 z-20 h-10" style="grid-column: span ${m.dayCount};">${m.name}</div>`;
+    });
+    headerRowCount++;
+
+    if (calendarViewMode === 'Weeks') {
+        const getWeekNumber = d => {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+        }
+        const weeks = [];
+        days.forEach(d => {
+            const week = getWeekNumber(d);
+            if (!weeks.find(w => w.week === week)) weeks.push({ week, dayCount: 0 });
+            weeks.find(w => w.week === week).dayCount++;
+        });
+        const weekHeaderTop = headerRowCount * 2.5;
+        weeks.forEach(w => {
+            html += `<div class="text-center font-semibold border-b border-l p-2 sticky bg-gray-100 z-20 h-10" style="grid-column: span ${w.dayCount}; top: ${weekHeaderTop}rem;">Week ${w.week}</div>`;
+        });
+        headerRowCount++;
+    }
+    
+    const dayHeaderTop = headerRowCount * 2.5;
+    const dayHeaderRow = headerRowCount + 1;
+
+    // === Day/Date Header and Main Content Rows ===
+    // --- FIX: Explicitly place the "Person" header in column 1 of its row ---
+    html += `<div class="font-semibold text-sm p-2 border-b border-r sticky left-0 bg-gray-100 z-20 h-10 flex items-center" style="grid-row: ${dayHeaderRow}; grid-column: 1; top: ${dayHeaderTop}rem;">Person</div>`;
+    
+    // --- FIX: Explicitly place each date header in its correct column ---
+    for (let i = 0; i < days.length; i++) {
+        const d = days[i];
+        html += `<div class="text-center text-xs p-1 border-b border-l sticky bg-gray-100 z-10 h-10 flex items-center justify-center" style="grid-row: ${dayHeaderRow}; grid-column: ${i + 2}; top: ${dayHeaderTop}rem;"><div>${d.getDate()}<br>${d.toLocaleDateString('en-US', { weekday: 'short' })}</div></div>`;
+    }
+    
+    peopleWithDates.forEach((p, index) => {
+        const gridRow = index + dayHeaderRow + 1; // Content starts after the day header row
+        html += `<div class="text-sm font-medium p-2 border-t border-r truncate sticky left-0 bg-white z-10 h-10 flex items-center" style="grid-row: ${gridRow}; grid-column: 1;">${p.name}</div>`;
+        
+        for (let i = 0; i < days.length; i++) {
+             html += `<div class="border-t border-l h-10" style="grid-row: ${gridRow}; grid-column: ${i + 2};"></div>`;
+        }
+
+        const pStart = new Date(p.start_date);
+        const pEnd = new Date(p.end_date);
+        
+        const startIndex = days.findIndex(d => d.getTime() === new Date(pStart).setHours(0,0,0,0));
+        const endIndex = days.findIndex(d => d.getTime() === new Date(pEnd).setHours(0,0,0,0));
+
+        if (pEnd < days[0] || pStart > days[days.length-1]) {
+            // This person is completely outside the range, skip.
+        } else {
+            const effectiveStartCol = Math.max(0, startIndex);
+            const effectiveEndCol = endIndex === -1 ? days.length - 1 : endIndex;
+            const duration = (effectiveEndCol - effectiveStartCol) + 1;
+            const colors = ['bg-blue-400', 'bg-green-400', 'bg-yellow-400', 'bg-purple-400', 'bg-pink-400', 'bg-indigo-400'];
+            const color = colors[index % colors.length];
+            const eventText = `${getSafeString(p.name)} (${getSafeString(p.start_location)} → ${getSafeString(p.end_location)})`;
+
+            html += `
+                <div class="h-8 ${color} rounded-md px-2 text-xs flex items-center text-white z-20 m-1 truncate" 
+                     style="grid-row: ${gridRow}; grid-column: ${effectiveStartCol + 2} / span ${duration};" 
+                     title="${eventText}">
+                    ${eventText}
+                </div>
+            `;
+        }
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+};
+				
+		function switchView(viewName, forceRender = false) {
+            if (currentView === viewName && !forceRender) return;
+
+            currentView = viewName;
+            for (const key in views) {
+                views[key].classList.toggle('hidden', key !== viewName);
+                navButtons[key].classList.toggle('bg-indigo-600', key === viewName);
+                navButtons[key].classList.toggle('text-white', key === viewName);
+                navButtons[key].classList.toggle('shadow-md', key === viewName);
+                navButtons[key].classList.toggle('text-gray-600', key !== viewName);
+            }
+            if (viewName === 'people') renderPeople();
+            if (viewName === 'groups') renderGroups();
+            if (viewName === 'templates') renderTemplates();
+            if (viewName === 'generator') renderGenerator();
+            if (viewName === 'calendar') renderCalendar();
+        };
+
+        // --- Modal Logic ---
+		function openPersonModal(person = null) {
+            // 1. Force the modal to appear immediately.
+            personModal.classList.remove('hidden'); 
+            
+            // 2. Reset the form.
+            personForm.reset();
+
+            // 3. Try to initialize the dropdown. If it fails, the modal is already visible.
+            try {
+                if (choicesInstance) {
+                    choicesInstance.destroy();
+                }
+                
+                const groupSelect = document.getElementById('person-groups-select');
+                groupSelect.innerHTML = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            
+                choicesInstance = new Choices(groupSelect, {
+                    removeItemButton: true,
+                    placeholder: true,
+                    placeholderValue: 'Select charters...',
+                });
+            } catch (error) {
+                console.error("Could not initialize the 'Charters' dropdown. The Choices.js library may not have loaded.", error);
+            }
+
+            // 4. Populate the form fields with data.
+            if (person) {
+                document.getElementById('person-modal-title').innerText = getSafeString(person.name);
+                document.getElementById('person-id').value = person.id;
+                document.getElementById('person-name').value = getSafeString(person.name);
+                document.getElementById('person-is-charterer').checked = person.is_charterer;
+				document.getElementById('person-is-skipper').checked = person.is_skipper;
+				document.getElementById('person-is-agent').checked = person.is_agent;
+                document.getElementById('person-company').value = getSafeString(person.company);
+                document.getElementById('person-email').value = getSafeString(person.email);
+                document.getElementById('person-address').value = getSafeString(person.address);
+                document.getElementById('person-phone').value = getSafeString(person.phone);
+                document.getElementById('person-birth-date').value = getSafeString(person.birth_date);
+                document.getElementById('person-price').value = getSafeString(person.price);
+                document.getElementById('person-start-date').value = getSafeString(person.start_date);
+                document.getElementById('person-end-date').value = getSafeString(person.end_date);
+                document.getElementById('person-sign-date').value = getSafeString(person.sign_date);
+                document.getElementById('person-verification-date').value = getSafeString(person.verification_date);
+                document.getElementById('person-start-location').value = getSafeString(person.start_location);
+                document.getElementById('person-end-location').value = getSafeString(person.end_location);
+                document.getElementById('person-identification').value = getSafeString(person.identification);
+                document.getElementById('person-nationality').value = getSafeString(person.nationality);
+                document.getElementById('person-tax-number').value = getSafeString(person.tax_number);
+                document.getElementById('person-tax-office').value = getSafeString(person.tax_office);
+                document.getElementById('person-notes').value = getSafeString(person.notes);
+                document.getElementById('person-crew_name1').value = getSafeString(person.crew_name1);
+                document.getElementById('person-crew_name2').value = getSafeString(person.crew_name2);
+                
+                if (person.groups && choicesInstance) {
+                    choicesInstance.setChoiceByValue(person.groups);
+                }
+            } else {
+                document.getElementById('person-modal-title').innerText = 'Add Person';
+				// Manually clear the hidden ID field to ensure a new person is created
+				document.getElementById('person-id').value = ''; 
+            }
+        };
+        const closePersonModal = () => personModal.classList.add('hidden');
+        
+        const openMultiPersonModal = () => {
+            multiPersonForm.reset();
+            multiPersonModal.classList.remove('hidden');
+        }
+        const closeMultiPersonModal = () => multiPersonModal.classList.add('hidden');
+        
+        const openGroupModal = (group = null) => {
+            groupForm.reset();
+            if (group) {
+                document.getElementById('group-modal-title').innerText = 'Edit Group';
+                document.getElementById('group-id').value = group.id;
+                document.getElementById('group-name').value = group.name;
+            } else {
+                document.getElementById('group-modal-title').innerText = 'Add Charter';
+            }
+            groupModal.classList.remove('hidden');
+        };
+        const closeGroupModal = () => groupModal.classList.add('hidden');
+
+        const openTemplateModal = (template = null) => {
+            templateForm.reset();
+            document.getElementById('template-file-name').innerText = 'No file chosen';
+            document.getElementById('template-save-btn').disabled = true;
+
+            if(template) {
+                document.getElementById('template-modal-title').innerText = 'Edit Template';
+                document.getElementById('template-id').value = template.id;
+                document.getElementById('template-name').value = template.name;
+                document.getElementById('template-file-name').innerText = template.fileName;
+                document.getElementById('template-file-content').value = template.fileContent;
+                document.getElementById('template-file-type').value = template.fileType;
+                document.getElementById('template-save-btn').disabled = false;
+            } else {
+                 document.getElementById('template-modal-title').innerText = 'Add Template';
+            }
+            templateModal.classList.remove('hidden');
+        };
+        
+        const closeTemplateModal = () => templateModal.classList.add('hidden');
+
+
+        // --- Supabase Logic ---
+        async function savePerson(e) {
+		//debugger; // This will pause the code
+            e.preventDefault();
+            const id = document.getElementById('person-id').value;
+			const selectedGroups = choicesInstance.getValue(true);
+            //const selectedGroups = Array.from(document.querySelectorAll('.person-group-checkbox:checked')).map(checkbox => checkbox.value);
+			
+			const isCharterer = document.getElementById('person-is-charterer').checked;
+			const isSkipper = document.getElementById('person-is-skipper').checked;
+            const isAgent = document.getElementById('person-is-agent').checked;
+			
+            const personData = {
+                name: document.getElementById('person-name').value || null,
+                is_charterer: document.getElementById('person-is-charterer').checked,
+				is_skipper: document.getElementById('person-is-skipper').checked,
+				is_agent: document.getElementById('person-is-agent').checked,
+				//title: (isCharterer || isSkipper || isAgent) ? null : document.getElementById('person-title').value || null,
+                company: document.getElementById('person-company').value || null,
+                email: document.getElementById('person-email').value || null,
+                address: document.getElementById('person-address').value || null,
+                phone: document.getElementById('person-phone').value || null,
+                birth_date: document.getElementById('person-birth-date').value || null,
+                price: document.getElementById('person-price').value || null,
+                start_date: document.getElementById('person-start-date').value || null,
+                end_date: document.getElementById('person-end-date').value || null,
+                sign_date: document.getElementById('person-sign-date').value || null,
+                verification_date: document.getElementById('person-verification-date').value || null,
+                start_location: document.getElementById('person-start-location').value || null,
+                end_location: document.getElementById('person-end-location').value || null,
+                identification: document.getElementById('person-identification').value || null,
+                nationality: document.getElementById('person-nationality').value || null,
+                tax_number: document.getElementById('person-tax-number').value || null,
+                tax_office: document.getElementById('person-tax-office').value || null,
+                notes: document.getElementById('person-notes').value || null,
+                crew_name1: document.getElementById('person-crew_name1').value || null,
+                crew_name2: document.getElementById('person-crew_name2').value || null,
+                groups: selectedGroups,
+            };
+
+            if (id) {
+                personData.id = id;
+            }
+            
+            const { error } = await supabase.from('people').upsert(personData);
+
+            if (error) {
+                console.error("Error saving person:", error);
+                alert("Could not save person. Check console for details.");
+            } else {
+                closePersonModal();
+				await fetchDataAndRender(); // Manually refresh the data
+            }
+        };
+
+        const saveMultiplePeople = async (e) => {
+            e.preventDefault();
+            const data = document.getElementById('multi-person-data').value.trim();
+            const lines = data.split('\n');
+            if (lines.length < 2) {
+                alert("Please provide a header line and at least one person line.");
+                return;
+            }
+
+            const header = parseCSVLine(lines.shift()).map(h => h.trim());
+            const peopleToSave = [];
+            
+            lines.forEach(line => {
+                if (line.trim() === '') return;
+                
+                // Use the new, robust CSV parser instead of the simple split(',')
+                const values = parseCSVLine(line);
+                const personData = {};
+                header.forEach((key, index) => {
+                    personData[key] = values[index] ? values[index].trim() : null;
+                });
+                
+                // Correctly handle the 'groups' column as strings (UUIDs), not numbers
+                if (personData.groups && typeof personData.groups === 'string' && personData.groups.trim() !== '') {
+                    personData.groups = personData.groups.split(',').map(id => id.trim());
+                } else {
+                    personData.groups = [];
+                }
+
+                if (personData.name) {
+                    peopleToSave.push(personData);
+                }
+            });
+
+            if (peopleToSave.length === 0) {
+                alert("No valid data found. Make sure 'name' is present for each person.");
+                return;
+            }
+            
+            const { error } = await supabase.from('people').insert(peopleToSave);
+
+            if (error) {
+                console.error("Error saving multiple people:", error);
+                alert("An error occurred while saving the people. Please check the console.");
+            } else {
+                 closeMultiPersonModal();
+				 await fetchDataAndRender();
+            }
+        };
+
+		const deletePerson = async (id) => {
+			const personToDelete = people.find(p => p.id === id);
+			const personName = personToDelete ? getSafeString(personToDelete.name) : 'this person';
+
+			if (window.confirm(`Are you sure you want to delete ${personName}?`)) {
+				const { error } = await supabase.from('people').delete().eq('id', id);
+					if (error) {
+						console.error("Error deleting person:", error);
+						alert("Could not delete person. Check console for details.");
+				} else {
+					await fetchDataAndRender(); // Manually refresh the data
+				}
+			}
+		};
+		
+        const saveGroup = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('group-id').value;
+            const groupData = { name: document.getElementById('group-name').value };
+            
+            if (id) {
+                groupData.id = id;
+            }
+
+            const { error } = await supabase.from('groups').upsert(groupData);
+
+            if (error) {
+                console.error("Error saving group:", error);
+                alert("Could not save group. Check console for details.");
+            } else {
+                closeGroupModal();
+				await fetchDataAndRender(); // Manually refresh the data
+            }
+        };
+
+        const deleteGroup = async (id) => {
+			const groupToDelete = groups.find(g => g.id === id);
+			const groupName = groupToDelete ? getSafeString(groupToDelete.name) : 'this group';
+			
+	        if (window.confirm(`Are you sure you want to delete the group "${groupName}"? This will remove it from all associated people.`)) {
+                
+                // --- LOGIC TO UPDATE PEOPLE HAS BEEN REPLACED ---
+
+                try {
+                    // Step 1: Find all people who are members of this group.
+                    const peopleInGroup = people.filter(p => p.groups && p.groups.includes(id));
+
+                    // Step 2: Loop through each person and explicitly update their 'groups' array.
+                    for (const person of peopleInGroup) {
+                        const newGroups = person.groups.filter(groupId => groupId !== id);
+                        const { error: updateError } = await supabase
+                            .from('people')
+                            .update({ groups: newGroups })
+                            .eq('id', person.id);
+
+                        if (updateError) {
+                            // If any single update fails, throw an error to stop the process.
+                            throw updateError;
+                        }
+                    }
+
+                    // Step 3: After successfully updating all people, delete the group itself.
+                    const { error: deleteError } = await supabase.from('groups').delete().eq('id', id);
+                    if (deleteError) {
+                        throw deleteError;
+                    }
+
+                    await fetchDataAndRender(); // Refresh the app data on success.
+
+                } catch (error) {
+                    console.error("Error during group deletion process:", error);
+                    alert(`An error occurred: ${error.message}`);
+                }
+			}
+        };
+
+        const saveTemplate = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('template-id').value;
+            const templateData = {
+                name: document.getElementById('template-name').value,
+                fileName: document.getElementById('template-file-name').innerText,
+                fileContent: document.getElementById('template-file-content').value,
+                fileType: document.getElementById('template-file-type').value
+            };
+            
+            if (id) {
+                templateData.id = id;
+            }
+            
+            const { error } = await supabase.from('templates').upsert(templateData);
+
+            if (error) {
+                console.error("Error saving template:", error);
+                alert("Could not save template. Check console for details.");
+            } else {
+                closeTemplateModal();
+				await fetchDataAndRender(); // Manually refresh the data
+            }
+        };
+
+        const deleteTemplate = async (id) => {
+			const templateToDelete = templates.find(t => t.id === id);
+			const templateName = templateToDelete ? getSafeString(templateToDelete.name) : 'this template';
+
+			if (window.confirm(`Are you sure you want to delete the template "${templateName}"?`)) {
+            const { error } = await supabase.from('templates').delete().eq('id', id);
+             if (error) {
+                console.error("Error deleting template:", error);
+                alert("Could not delete template. Check console for details.");
+            } else {
+				await fetchDataAndRender(); // Manually refresh the data
+				}
+			}
+        };
+
+        // --- Document Generation ---
+        const getDataForTemplate = (person) => {
+            const data = JSON.parse(JSON.stringify(person));
+            const today = new Date();
+            data.date = today.toLocaleDateString('el-GR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+
+            const dateFields = ['birth_date', 'start_date', 'end_date', 'sign_date', 'verification_date'];
+            dateFields.forEach(field => {
+                if (data[field] && data[field].includes('-')) {
+                    const parts = data[field].split('-');
+                    if (parts.length === 3) {
+                         data[field] = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                }
+            });
+            
+            if (data.price) {
+                data.price_in_words = numberToWords(data.price);
+            } else {
+                data.price_in_words = '';
+            }
+
+            return data;
+        }
+
+        const generateDocx = (data, template, fileName) => {
+            const PizZip = window.PizZip;
+            const docxtemplater = window.docxtemplater;
+            const saveAs = window.saveAs;
+
+            const base64Content = template.fileContent.split(',')[1];
+            const zip = new PizZip(atob(base64Content));
+            const doc = new docxtemplater(zip, { 
+                paragraphLoop: true, 
+                linebreaks: true,
+                nullGetter: () => ""
+            });
+            
+            doc.render(data);
+
+            const out = doc.getZip().generate({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+            saveAs(out, fileName);
+        };
+
+		const generateXlsx = async (data, template, fileName) => {
+			const ExcelJS = window.ExcelJS;
+			const saveAs = window.saveAs;
+
+			const base64Content = template.fileContent.split(',')[1];
+			const buffer = Uint8Array.from(atob(base64Content), c => c.charCodeAt(0));
+
+			const workbook = new ExcelJS.Workbook();
+			await workbook.xlsx.load(buffer);
+			
+			const getValueByPath = (obj, path) => {
+				const direct = obj[path];
+				if (direct !== undefined) return direct;
+				return path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : ''), obj);
+			};
+
+			const replacePlaceholdersInCell = (cell, dataObject) => {
+				if (!cell.value || typeof cell.value !== 'string') return;
+
+				let cellValue = cell.value;
+				const placeholders = cellValue.match(/{{\s*[\w.]+\s*}}/g) || [];
+
+				placeholders.forEach(placeholder => {
+					const key = placeholder.replace(/{{\s*|\s*}}/g, '');
+					const value = getSafeString(getValueByPath(dataObject, key)); 
+					cellValue = cellValue.replace(new RegExp(escapeRegExp(placeholder), 'g'), value);
+				});
+
+				cell.value = cellValue;
+			};
+
+			if (data.people && Array.isArray(data.people)) {
+				workbook.eachSheet(worksheet => {
+					worksheet.eachRow({ includeEmpty: true }, row => {
+						row.eachCell({ includeEmpty: true }, cell => {
+							if (cell.value && typeof cell.value === 'string' && !cell.value.includes('{{people.')) {
+								replacePlaceholdersInCell(cell, data);
+							}
+						});
+					});
+				});
+
+				workbook.eachSheet(worksheet => {
+					let templateRow = null;
+					let templateRowNumber = -1;
+
+					worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+						if (templateRow) return;
+						row.eachCell({ includeEmpty: true }, cell => {
+							if (cell.value && typeof cell.value === 'string' && cell.value.includes('{{people.')) {
+								templateRow = row;
+								templateRowNumber = rowNumber;
+							}
+						});
+					});
+
+					if (templateRow) {
+						const templateValues = [];
+						const templateStyles = [];
+						templateRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+							templateValues[colNumber] = cell.value;
+							templateStyles[colNumber] = cell.style;
+						});
+
+						worksheet.spliceRows(templateRowNumber, 1);
+
+						data.people.forEach((person, index) => {
+						    person.row_number = index + 1; // Add the row number to the person's data
+							person.prefix_word = index === 0 ? 'Skipper' : 'Passenger'; 
+
+							const newRowValues = templateValues.map(val => {
+								let cellValue = val;
+								if (cellValue && typeof cellValue === 'string') {
+									const placeholders = cellValue.match(/{{\s*people\.[\w.]+\s*}}/g) || [];
+									placeholders.forEach(placeholder => {
+										const key = placeholder.replace(/{{\s*people\.|\s*}}/g, '');
+										let value = getSafeString(getValueByPath(person, key));
+										if (value === '') {
+											value = getSafeString(getValueByPath(person, key.replace('people.', '')));
+										}
+										cellValue = cellValue.replace(new RegExp(escapeRegExp(placeholder), 'g'), value);
+									});
+								}
+								return cellValue;
+							});
+
+							worksheet.insertRow(templateRowNumber + index, newRowValues);
+
+							const newRow = worksheet.getRow(templateRowNumber + index);
+							newRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+								cell.style = templateStyles[colNumber] || {};
+							});
+						});
+						
+						const blankRowsNeeded = 12 - data.people.length;
+                        if (blankRowsNeeded > 0) {
+                            // Get the last row that was created with data
+                            const lastDataRow = worksheet.getRow(templateRowNumber + data.people.length - 1);
+
+                            for (let i = 0; i < blankRowsNeeded; i++) {
+                                const newRowNumberValue = templateRowNumber + data.people.length + i - 9
+								const prefixWordValue = 'Passenger';;
+                                // Insert a blank row. The number of empty cells should match your template's width.
+                                
+								const newRowData = [newRowNumberValue.toString(), prefixWordValue, null, null, null, null, null, null]; // Add more `null` values if your template has more columns.
+                                const newRowNumber = templateRowNumber + data.people.length + i;
+								const newRow = worksheet.insertRow(newRowNumber, newRowData);
+
+                                // Explicitly copy styles and row height
+                                newRow.height = lastDataRow.height;
+                                newRow.eachCell({ includeEmpty: true }, (newCell, colNumber) => {
+                                    const templateCell = lastDataRow.getCell(colNumber);
+
+                                    // Manually create a deep copy of the style
+                                    newCell.font = { ...templateCell.font };
+                                    newCell.border = { ...templateCell.border };
+                                    newCell.fill = { ...templateCell.fill };
+                                    newCell.alignment = { ...templateCell.alignment };
+                                    newCell.numFmt = templateCell.numFmt;
+								});
+							}
+                        }
+					}
+				});
+			} 
+			else {
+				workbook.eachSheet(worksheet => {
+					worksheet.eachRow({ includeEmpty: true }, row => {
+						row.eachCell({ includeEmpty: true }, cell => {
+							replacePlaceholdersInCell(cell, data);
+						});
+					});
+				});
+			}
+
+			
+            // This section sets the print area for every sheet in the workbook.
+            workbook.eachSheet(worksheet => {
+                // Customize the range 'A1:I25' to fit your document's content.
+                // For example, if your content spans to column J and row 40, use 'A1:J40'.
+                worksheet.pageSetup.printArea = 'A1:I38';
+            });
+            
+			const newBuffer = await workbook.xlsx.writeBuffer();
+			const blob = new Blob([newBuffer], {
+				type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+			});
+			
+			saveAs(blob, fileName);
+		};
+        const getRoleBasedData = (contextPeople) => {
+            const roleData = {};
+            const fieldsToCopy = [
+                'name', 'address', 'identification', 'tax_number', 'tax_office', 'phone', 'email', 'nationality','sign_date', 'start_date', 'start_location', 'end_date', 'end_location', 'price', 'price_in_words', 'verification_date'
+            ];
+            // Find Agent
+            const agent = contextPeople.find(p => p.is_agent === true);
+            if (agent) {
+                const formattedAgentData = getDataForTemplate(agent);
+                fieldsToCopy.forEach(field => {
+                    roleData[`agent_${field}`] = formattedAgentData[field] || '';
+                });
+            }
+            // Find Charterer
+            const charterer = contextPeople.find(p => p.is_charterer === true);
+            if (charterer) {
+                const formattedChartererData = getDataForTemplate(charterer);
+                fieldsToCopy.forEach(field => {
+                    roleData[`charterer_${field}`] = formattedChartererData[field] || '';
+                });
+            }
+            return roleData;
+        }; 
+
+        const handleGenerateDocument = async () => {
+            const type = document.getElementById('generator-type-select').value;
+            const itemId = document.getElementById('generator-item-select').value;
+            const templateId = document.getElementById('template-select').value;
+            
+            const btn = document.getElementById('generate-btn');
+            const btnIcon = document.getElementById('generate-btn-icon');
+            const btnText = document.getElementById('generate-btn-text');
+            const originalBtnHtml = btn.innerHTML;
+
+            if (!itemId || !templateId) {
+                alert('Please select an item and a template.');
+                return;
+            }
+
+            btn.disabled = true;
+            btnIcon.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>`;
+            btnText.innerText = 'Generating...';
+
+            
+            try {
+                const template = templates.find(t => t.id === templateId);
+                if (!template) throw new Error("Template not found.");
+
+			let finalFileName = ''; // This will hold the calculated file name.
+
+                // --- START: New Filename Logic ---
+                if (type === 'group') {
+                    const group = groups.find(g => g.id === itemId);
+                    if (group) {
+                        const templateParts = template.name.split(' '); // e.g., ['CP', 'B461']
+                        const groupParts = group.name.split(' ');     // e.g., ['Johnson', '20251014']
+
+                        // Check if names match the expected "Prefix Type" and "Name Date" conventions
+                        if (templateParts.length >= 2 && groupParts.length >= 2) {
+                            const prefix = templateParts[0];
+                            const yachtType = templateParts[1];
+                            const chartererName = groupParts[0];
+                            const charterDate = groupParts[1];
+                            
+                            if (prefix === 'CP' || prefix === 'Invoice' || prefix === 'Crewlist') {
+                                finalFileName = `${prefix} ${chartererName} ${yachtType} ${charterDate}.${template.fileType}`;
+                            }
+                        }
+                    }
+                }
+
+                // If the special naming logic didn't apply, create a fallback name.
+                if (!finalFileName) {
+                    const itemName = (type === 'group')
+                        ? groups.find(g => g.id === itemId)?.name
+                        : people.find(p => p.id === itemId)?.name;
+                    const safeName = getSafeString(itemName).replace(/[\s/]/g, '_');
+                    finalFileName = `${template.name}_${safeName}.${template.fileType}`;
+                }
+                // --- END: New Filename Logic ---
+
+				if (type === 'group') {
+                    const group = groups.find(g => g.id === itemId);
+                    if (!group) throw new Error("Group not found");
+
+                    let peopleInGroup = people.filter(p => p.groups && p.groups.includes(group.id));
+					
+					// Conditionally create a list of people for the document loop
+                    let peopleForDocument = [...peopleInGroup];
+                    if (template.fileType === 'xlsx') {
+                        peopleForDocument = peopleInGroup.filter(p => p.is_agent === false);
+                    }
+					
+					// Sort the list by role priority: Skipper -> Charterer -> Others
+                    if (peopleForDocument.length > 0) {
+                        peopleForDocument.sort((a, b) => {
+				         const getPriority = (person) => { 
+                            const title  = getSafeString(person.title).toLowerCase()
+							if (person.is_skipper === true) return 0;   // Highest priority
+                            if (person.is_charterer === true) return 1; // Second priority
+                            return 2;                           // Lowest priority
+							
+						};
+						const priorityA = getPriority(a);
+						const priorityB = getPriority(b);
+						// If priorities are different, sort by priority.
+						// Otherwise, sort by creation date.
+						if (priorityA !== priorityB) {
+							return priorityA - priorityB;
+						} else { 
+                            return a.created_at.localeCompare(b.created_at);
+							}
+                        });
+                    } 
+					
+                    if (peopleForDocument.length === 0 && peopleInGroup.length > 0) {
+                        alert("The only member of this group is an Agent, who will be excluded from the XLSX file, resulting in an empty document.");
+                       } else if (peopleInGroup.length === 0) {
+                        alert("This group has no members.");
+					}
+				
+                    // The role-based placeholders (agent, charterer) should still be populated from the original full group list
+                    const roleData = getRoleBasedData(peopleInGroup);
+                    const allStartDates = peopleInGroup.map(p => new Date(p.start_date)).filter(d => !isNaN(d));
+                    const allEndDates = peopleInGroup.map(p => new Date(p.end_date)).filter(d => !isNaN(d));
+                    const allStartLocations = [...new Set(peopleInGroup.map(p => p.start_location).filter(Boolean))];
+                    const allEndLocations = [...new Set(peopleInGroup.map(p => p.end_location).filter(Boolean))];
+                    const groupStartDate = allStartDates.length ? new Date(Math.min(...allStartDates)) : null;
+                    const groupEndDate = allEndDates.length ? new Date(Math.max(...allEndDates)) : null;
+                    const groupData = {
+                        ...roleData,
+                        group_name: group.name,
+                        people: peopleForDocument.map(p => getDataForTemplate(p)), // Use the potentially filtered list
+                        group_start_date: groupStartDate ? groupStartDate.toLocaleDateString('el-GR', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '',
+                        group_end_date: groupEndDate ? groupEndDate.toLocaleDateString('el-GR', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '',
+                        group_start_location: allStartLocations.join(', '),
+                        group_end_location: allEndLocations.join(', ')
+                    };
+                    const today = new Date();
+                    groupData.date = today.toLocaleDateString('el-GR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                    if (template.fileType === 'xlsx') {
+                        await generateXlsx(groupData, template, finalFileName); 
+                    } else {
+                        
+                            generateDocx(groupData, template, finalFileName);
+                        
+                    }
+
+                } else { // person
+                    const person = people.find(p => p.id === itemId);
+                    if (!person) throw new Error("Person not found.");
+					
+                  let contextPeople = [person];
+                    // Find the context (the group the person belongs to)
+                    if (person.groups && person.groups.length > 0) {
+                        const contextGroupId = person.groups[0];
+                        contextPeople = people.filter(p => p.groups && p.groups.includes(contextGroupId));
+                    }
+                    const roleData = getRoleBasedData(contextPeople);
+	                 const personData = {
+                        ...getDataForTemplate(person),
+						...roleData
+                    }; 
+
+                    if (template.fileType === 'xlsx') {
+                        await generateXlsx(personData, template, finalFileName);
+                    } else { 
+                        generateDocx(personData, template, finalFileName);
+                    }
+                }
+            } catch (error) {
+                 console.error("Error generating document:", error);
+                 let errorMessage = "An unknown error occurred. Check the console.";
+                if (error.properties && error.properties.errors) {
+                    errorMessage = "Template Error:\n\n";
+                    error.properties.errors.forEach(err => {
+                        errorMessage += `- ${err.properties.explanation}\n`;
+                    });
+                }
+                alert(errorMessage);
+            } finally {
+                 if (libsReady) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml;
+                }
+            }
+        };
+        
+			const exportPeopleToCSV = () => {
+            // Add confirmation dialog before running the export.
+            if (window.confirm("Are you sure you want to export all people to a CSV file?")) {
+                const headers = [
+                    'name','title','company','crew_name1','crew_name2','email','address','phone','birth_date','price','start_date','end_date','sign_date','verification_date','start_location','end_location','identification','nationality','tax_number','tax_office','notes', 'groups'
+                ];
+                const escapeCSV = (val) => {
+                    if (val === null || val === undefined) return '';
+                    let str = String(val);
+                    if (str.search(/("|,|\n)/g) >= 0) {
+                        str = `"${str.replace(/"/g, '""')}"`;
+                    }
+                    return str;
+                };
+                const rows = people.map(person => {
+                    return headers.map(header => {
+                        let value = person[header];
+                        if (header === 'groups') {
+                            value = (person.groups && Array.isArray(person.groups)) ? person.groups.join(',') : '';
+                        }
+                        return escapeCSV(value);
+                    }).join(',');
+                });
+                const csvContent = [headers.join(','), ...rows].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    const date = new Date().toISOString().split('T')[0];
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `people_export_${date}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            } // End of confirmation block
+        };
+
+        // --- Event Listeners ---
+        function setupEventListeners() {		
+	handleEnterSubmit(personModal, personForm);
+    handleEnterSubmit(multiPersonModal, multiPersonForm);
+    handleEnterSubmit(groupModal, groupForm);
+    handleEnterSubmit(templateModal, templateForm);
+    
+    const addToGroupModal = document.getElementById('add-to-group-modal');
+    const addToGroupForm = document.getElementById('add-to-group-form');
+    handleEnterSubmit(addToGroupModal, addToGroupForm);
+    
+    const editGroupModal = document.getElementById('edit-group-modal');
+    const editGroupForm = document.getElementById('edit-group-form');
+    handleEnterSubmit(editGroupModal, editGroupForm);
+            // Navigation
+            for (const key in navButtons) {
+                navButtons[key].addEventListener('click', () => switchView(key));
+            }
+
+            // Modals
+            personForm.addEventListener('submit', savePerson);
+            document.getElementById('person-modal-close').addEventListener('click', closePersonModal);
+            
+            multiPersonForm.addEventListener('submit', saveMultiplePeople);
+            document.getElementById('multi-person-modal-close').addEventListener('click', closeMultiPersonModal);
+            
+            groupForm.addEventListener('submit', saveGroup);
+            document.getElementById('group-modal-close').addEventListener('click', closeGroupModal);
+
+            templateForm.addEventListener('submit', saveTemplate);
+            document.getElementById('template-modal-close').addEventListener('click', closeTemplateModal);
+
+            // File Upload for Templates
+            document.getElementById('template-choose-file-btn').addEventListener('click', () => {
+                document.getElementById('template-file-input').click();
+            });
+			
+			document.getElementById('template-file-input').addEventListener('change', async (e) => {
+			const files = e.target.files;
+			if (!files || files.length === 0) return;
+		
+			// Provide immediate UI feedback for processing
+			const fileNameSpan = document.getElementById('template-file-name');
+			fileNameSpan.innerText = `Processing ${files.length} file(s)...`;
+			document.getElementById('template-save-btn').disabled = true;
+		
+			const readFileAsDataURL = (file) => {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onload = () => resolve(reader.result);
+					reader.onerror = reject;
+					reader.readAsDataURL(file);
+				});
+			};
+
+			const templatesToSave = [];
+			for (const file of files) {
+				const fileType = file.name.split('.').pop().toLowerCase();
+				if (fileType !== 'docx' && fileType !== 'xlsx') {
+					console.warn(`Skipping invalid file type: ${file.name}`);
+					continue; // Skip files that are not .docx or .xlsx
+				}
+				
+				try {
+					const fileContent = await readFileAsDataURL(file);
+					templatesToSave.push({
+						name: file.name.replace(/\.(docx|xlsx)$/i, ''), // Use the filename as the template name
+						fileName: file.name,
+						fileContent: fileContent,
+						fileType: fileType
+					});
+				} catch (error) {
+					console.error(`Error reading file ${file.name}:`, error);
+				}
+			}
+		
+			if (templatesToSave.length > 0) {
+				const { error } = await supabase.from('templates').insert(templatesToSave);
+				if (error) {
+					console.error("Error saving templates:", error);
+					alert("Could not save all templates. Please check the console for details.");
+				}
+			}
+		
+			closeTemplateModal();
+			// The database change will trigger a refresh automatically, but we call it just in case.
+			await fetchDataAndRender();
+		});
+
+			document.addEventListener('keydown', (e) => {
+					if (e.key === 'Escape') {
+						// Close any modal that might be open
+						closePersonModal();
+						closeMultiPersonModal();
+						closeGroupModal();
+						closeTemplateModal();
+						document.getElementById('add-to-group-modal').classList.add('hidden');
+						document.getElementById('edit-group-modal').classList.add('hidden');
+					}
+			});
+			
+			/* remove after checking Enter funtcionality in all screens
+			document.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter') {
+						// Close any modal that might be open
+						closePersonModal();
+						closeMultiPersonModal();
+						closeGroupModal();
+						closeTemplateModal();
+						document.getElementById('add-to-group-modal').classList.add('hidden');
+						document.getElementById('edit-group-modal').classList.add('hidden');
+					}
+			});*/
+
+
+            // Dynamic content events (using delegation)
+
+			mainContent.addEventListener('mousedown', (e) => {
+				// These lines are now active
+				const addPersonBtn = e.target.closest('#add-person-btn');
+				const addMultiPersonBtn = e.target.closest('#add-multi-person-btn');
+				const exportCsvBtn = e.target.closest('#export-csv-btn');
+			
+				// The rest of the variables
+				const editPersonBtn = e.target.closest('.edit-person-btn');
+				const deletePersonBtn = e.target.closest('.delete-person-btn');
+				const addGroupBtn = e.target.closest('#add-group-btn');
+				const editGroupBtn = e.target.closest('.edit-group-btn');
+				const deleteGroupBtn = e.target.closest('.delete-group-btn');
+				const addTemplateBtn = e.target.closest('#add-template-btn');
+				const editTemplateBtn = e.target.closest('.edit-template-btn');
+				const deleteTemplateBtn = e.target.closest('.delete-template-btn');
+				const generateBtn = e.target.closest('#generate-btn');
+				const calendarViewBtn = e.target.closest('#calendar-view-mode');
+				const clearSearchBtn = e.target.closest('#clear-search-btn'); 
+								
+				// These if-statements are now active
+				if (addPersonBtn) openPersonModal();
+				if (addMultiPersonBtn) openMultiPersonModal();
+				if (exportCsvBtn) exportPeopleToCSV();
+				
+				// The rest of the button logic
+				if (editPersonBtn) {
+					const person = people.find(p => p.id === editPersonBtn.dataset.id);
+					if (person) openPersonModal(person);
+				}
+				if (deletePersonBtn) deletePerson(deletePersonBtn.dataset.id);
+				if (addGroupBtn) openGroupModal();
+				if (editGroupBtn) {
+					openEditGroupModal(editGroupBtn.dataset.id);
+				}
+				if (deleteGroupBtn) deleteGroup(deleteGroupBtn.dataset.id);
+				if (addTemplateBtn) openTemplateModal();
+				if (editTemplateBtn) {
+					const template = templates.find(t => t.id === editTemplateBtn.dataset.id);
+					if (template) openTemplateModal(template);
+				}
+				if (deleteTemplateBtn) deleteTemplate(deleteTemplateBtn.dataset.id);
+				if (generateBtn) handleGenerateDocument();
+				if(calendarViewBtn){
+					calendarViewMode = calendarViewMode === 'Weeks' ? 'Days' : 'Weeks';
+					calendarViewBtn.innerText = calendarViewMode;
+					const datePicker = document.getElementById('calendar-date-range')._flatpickr;
+					renderTimeline(datePicker.selectedDates[0], datePicker.selectedDates[1]);
+				}
+				if (clearSearchBtn) { 
+					currentSearchTerm = '';
+					renderPeopleList();
+					document.getElementById('search-people').focus();
+				}
+			});
+
+			mainContent.addEventListener('change', (e) => {
+						if (e.target.id === 'generator-type-select') {
+							updateGeneratorItemOptions();
+						}
+					});
+		
+			document.getElementById('add-to-group-form').addEventListener('submit', savePeopleToGroup);
+			document.getElementById('add-to-group-modal-close').addEventListener('mousedown', () => {
+			document.getElementById('add-to-group-modal').classList.add('hidden');
+			});
+
+
+			document.getElementById('edit-group-form').addEventListener('submit', updateGroup);
+			document.getElementById('edit-group-modal-close').addEventListener('mousedown', () => {
+			document.getElementById('edit-group-modal').classList.add('hidden');
+			});
+		
+		
+        };
+
+        // --- App Initialization ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // --- IMPORTANT: PASTE YOUR SUPABASE DETAILS HERE ---
+                const SUPABASE_URL = 'https://xiwamjmckodeffkpjeyg.supabase.co'; 
+                const SUPABASE_ANON_KEY = 'sb_publishable_6jD-fohYqxrr9uYepnvazg_qVesviMe';
+                // -------------------------------------------------
+
+                if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                     mainContent.innerHTML = `<div class="bg-red-100 p-4 rounded-lg text-red-700 text-center"><strong>Configuration Needed:</strong> Please update the SUPABASE_URL and SUPABASE_ANON_KEY variables in the script tag to connect to your database.</div>`;
+                     return;
+                }
+
+                //supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+				
+				// 1. Define the sessionStorage adapter
+				const sessionStorageAdapter = {
+				getItem: (key) => sessionStorage.getItem(key),
+				setItem: (key, value) => sessionStorage.setItem(key, value),
+				removeItem: (key) => sessionStorage.removeItem(key),
+					};
+				
+				// 2. Pass the adapter into the createClient options
+				supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+				auth: {
+					storage: sessionStorageAdapter,
+					},
+				});
+				
+				const authView = document.getElementById('auth-view');
+				const loginForm = document.getElementById('login-form');
+				const signupForm = document.getElementById('signup-form');
+				const showSignupLink = document.getElementById('show-signup-link');
+				const showLoginLink = document.getElementById('show-login-link');
+                
+				// --- Add event listeners to toggle between forms ---
+				showSignupLink.addEventListener('click', (e) => {
+					e.preventDefault();
+					loginForm.classList.add('hidden');
+					signupForm.classList.remove('hidden');
+				});
+				
+				showLoginLink.addEventListener('click', (e) => {
+					e.preventDefault();
+					signupForm.classList.add('hidden');
+					loginForm.classList.remove('hidden');
+				});
+
+				// --- Handle the Sign-Up Form submission ---
+				signupForm.addEventListener('submit', async (e) => {
+					e.preventDefault();
+					const email = document.getElementById('signup-email').value;
+					const password = document.getElementById('signup-password').value;
+				
+					const { data, error } = await supabase.auth.signUp({
+						email: email,
+						password: password
+					});
+				
+					if (error) {
+						alert("Sign-up failed: " + error.message);
+					} else {
+						alert("Sign-up successful! Please check your email for a confirmation link.");
+						// Switch back to the login form after successful sign-up
+						signupForm.classList.add('hidden');
+						loginForm.classList.remove('hidden');
+					}
+				});
+
+				const { data: { session } } = await supabase.auth.getSession();
+			
+				if (!session) {
+					// If no user is logged in, show the login form
+					authView.classList.remove('hidden');
+					mainContent.classList.add('hidden'); // Hide the app
+				} else {
+					// If a user is logged in, hide the login form and load their data
+					authView.classList.add('hidden');
+					await fetchDataAndRender(); // Your existing data fetching logic
+				}
+			
+			// Add an event listener for the new login form
+			document.getElementById('login-form').addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const email = document.getElementById('login-email').value;
+				const password = document.getElementById('login-password').value;
+			
+				const { error } = await supabase.auth.signInWithPassword({ email, password });
+			
+				if (error) {
+					alert("Login failed: " + error.message);
+				} else {
+					// On successful login, hide the form and start the app
+					authView.classList.add('hidden');
+					document.getElementById('main-content').classList.remove('hidden');
+					await fetchDataAndRender(); // Load the user's data
+				}
+			});
+			
+			document.getElementById('logout-btn').addEventListener('click', async () => {
+			await supabase.auth.signOut();
+			location.reload(); // Reload the page to show the login screen
+		});
+				                
+                // Initial data load
+                await fetchDataAndRender();
+
+                // Listen for real-time changes
+                supabase.channel('public-data-changes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'people' }, () => fetchDataAndRender())
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'groups' }, () => fetchDataAndRender())
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'templates' }, () => fetchDataAndRender())
+                    .subscribe();
+
+                const scriptsToLoad = [
+                    { primary: 'https://cdn.jsdelivr.net/npm/flatpickr' },
+                    { primary: 'https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js', fallback: 'https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js' },
+                    { primary: 'https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.34.2/docxtemplater.js', fallback: 'https://cdn.jsdelivr.net/npm/docxtemplater@3.34.2/build/docxtemplater.js' },
+                    { primary: 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js', fallback: 'https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js' },
+                    { primary: 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js', fallback: 'https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js' }
+                ];
+
+                Promise.all(scriptsToLoad.map(s => s.fallback ? loadScriptWithFallback(s.primary, s.fallback) : loadScriptWithFallback(s.primary, s.primary)))
+                    .then(() => {
+                        console.log("All generation libraries loaded successfully.");
+                        libsReady = true;
+                        if(currentView === 'generator') renderGenerator();
+                        if(currentView === 'calendar') renderCalendar();
+                    })
+                    .catch(err => {
+                        console.error("A critical library failed to load from all sources:", err);
+                        if (currentView === 'generator') renderGenerator(); 
+                        
+                        const generatorView = document.getElementById('view-generator');
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = "bg-red-100 border-t-4 border-red-500 rounded-b text-red-900 px-4 py-3 shadow-md mt-4";
+                        errorDiv.setAttribute("role", "alert");
+                        errorDiv.innerHTML = `<div class="flex"><div class="py-1"><svg class="fill-current h-6 w-6 text-red-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zM11 14v-4h-2v4h2zm0-6V6h-2v2h2z"/></svg></div><div><p class="font-bold">Initialization Failed</p><p class="text-sm">Could not load a required library. Document generation is disabled.</p></div></div>`;
+                        if (generatorView) generatorView.appendChild(errorDiv);
+                    });
+
+                setupEventListeners();
+                switchView('groups');
+
+            } catch (error) {
+                console.error("Initialization failed:", error);
+                mainContent.innerHTML = `<div class="bg-red-100 p-4 rounded-lg text-red-700">A critical error occurred during startup: ${error.message}. Check the console for details.</div>`;
+            }
+        });
+		
+		const handleEnterSubmit = (modalElement, formElement) => {
+			modalElement.addEventListener('keydown', (e) => {
+        // Check if the Enter key was pressed (without the Shift key)
+        if (e.key === 'Enter' && !e.shiftKey) {
+
+            // --- START: Updated Choices.js Logic ---
+            const choicesContainer = e.target.closest('.choices');
+            if (choicesContainer) {
+                // If the dropdown list is currently open, let Choices.js handle the Enter key 
+                // (for selecting an item) and do NOT submit the form.
+                if (choicesContainer.classList.contains('is-open')) {
+                    return;
+                }
+            }
+            // --- END: Updated Choices.js Logic ---
+
+            // Do NOT submit if the user is in a textarea
+            if (e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            // If we're not in an open dropdown or a textarea, submit the form.
+            e.preventDefault();
+            formElement.requestSubmit();
+        }
+    });
+};
+		
+				
+    </script>
+	<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+</body>
+</html>
