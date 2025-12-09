@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocuGen - People & Document Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
@@ -403,8 +404,7 @@
 
     <script type="module">
 	
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-        
+		
         // --- Global State ---
         let supabase;
         let groups = [];
@@ -2461,12 +2461,18 @@ async function updateGroup(e) {
 				removeItem: (key) => sessionStorage.removeItem(key),
 					};
 				
+				const { createClient } = window.supabase;
+				
 				// 2. Pass the adapter into the createClient options
 				supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 				auth: {
 					storage: sessionStorageAdapter,
+					persistSession: true, // Explicitly tell it to persist (in session storage)
+					autoRefreshToken: true,
 					},
 				});
+				
+				//window.supabase = _supabase;
 				
 				const authView = document.getElementById('auth-view');
 				const loginForm = document.getElementById('login-form');
